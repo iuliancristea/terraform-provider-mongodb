@@ -245,6 +245,39 @@ func getRole(client *mongo.Client, roleName string, database string) (SingleResu
 	return decodedResult, nil
 }
 
+func updateRole(client *mongo.Client, role string, roles []Role, privilege []PrivilegeDto, database string) error {
+	var privileges []Privilege
+	for _, element := range privilege {
+		var prv Privilege
+		prv.Resource = Resource{
+			Db:         element.Db,
+			Collection: element.Collection,
+		}
+		prv.Actions = element.Actions
+		privileges = append(privileges, prv)
+	}
+
+	cmd := bson.D{{Key: "updateRole", Value: role}}
+
+	if len(privileges) != 0 {
+		cmd = append(cmd, bson.E{Key: "privileges", Value: privileges})
+	} else {
+		cmd = append(cmd, bson.E{Key: "privileges", Value: []bson.M{}})
+	}
+
+	if len(roles) != 0 {
+		cmd = append(cmd, bson.E{Key: "roles", Value: roles})
+	} else {
+		cmd = append(cmd, bson.E{Key: "roles", Value: []bson.M{}})
+	}
+
+	result := client.Database(database).RunCommand(context.Background(), cmd)
+	if result.Err() != nil {
+		return result.Err()
+	}
+	return nil
+}
+
 func createRole(client *mongo.Client, role string, roles []Role, privilege []PrivilegeDto, database string) error {
 	var privileges []Privilege
 	var result *mongo.SingleResult
