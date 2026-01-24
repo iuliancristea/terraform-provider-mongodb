@@ -1,4 +1,4 @@
-module github.com/Kaginari/terraform-provider-mongodb
+module github.com/iwoca/terraform-provider-mongodb
 
 go 1.19
 
